@@ -1,0 +1,83 @@
+<%- include('../../partials/header.ejs') %> <%- include('../../partials/navbar.ejs') %>
+
+<body>
+  <div class="container">
+    <hr />
+    <h2>Categorias</h2>
+    <a class="btn btn-success" href="/admin/categories/new" tabindex="2">Criar nova Categoria</a>
+    <hr />
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Título</th>
+          <th>Slug</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="infoDATA">
+        <% const categorias = JSON.parse(categories) %>
+        <% for (let i in categorias) { %>
+        <tr>
+          <th><%= categorias[i].id %></th>
+          <th><%= categorias[i].title %></th>
+          <th><%= categorias[i].slug %></th>
+          <th>
+            <a href="/admin/categories/edit/<%= categorias[i].id %>" class="btn btn-warning" tabindex="2">Editar</a>
+            <form onsubmit="deletarCategoria(event, this)" method="POST" action="/categories/delete" style="display: inline;">
+              <input type="hidden" name="id" value="<%= categorias[i].id %>" />
+              <button class="btn btn-danger" tabindex="2">Deletar</button>
+            </form>
+          </th>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+  <script>
+    function deletarCategoria(event, form) {
+      event.preventDefault();
+      let decision = confirm('Tem certeza que deseja deletar a categoria?')
+      decision ? form.submit() : '';
+      return
+    }
+    let dataHTML = '';
+    const infoDATA = document.getElementById('infoDATA');
+    // fetch('http://127.0.0.1/admin/categories/api').then(response => response.json()).then(data => {
+    //   if(dados !== data){
+    //     dados = data;
+    //   }else{
+    //     console.log('Dados estão atualizados');
+    //   }
+    // });
+    let dados = [];
+    setInterval(() => {
+      fetch('http://127.0.0.1/admin/categories/api').then(response => response.json()).then(data => {
+        if (dados === undefined || JSON.stringify(dados) != JSON.stringify(data)) {
+          dataHTML = '';
+          dados = data;
+          const d = new Date();
+          console.log(`Novas atualizações : ${d.getHours()}h${d.getMinutes()}m`);
+          for (let i in dados) {
+            dataHTML += `
+          <tr>
+            <th>${dados[i].id}</th>
+            <th>${dados[i].title}</th>
+            <th>${dados[i].slug}</th>
+            <th>
+              <a href="/admin/categories/edit/${dados[i].id}" class="btn btn-warning" tabindex="2">Editar</a>
+              <form onsubmit="deletarCategoria(event, this)" method="POST" action="/categories/delete" style="display: inline;">
+                <input type="hidden" name="id" value="${dados[i].id}" />
+                <button class="btn btn-danger" tabindex="2">Deletar</button>
+              </form>
+            </th>
+          </tr>
+          `
+          }
+          infoDATA.innerHTML = dataHTML;
+        }
+      });
+    }, 2000);
+  </script>
+</body>
+<%- include('../../partials/footer.ejs') %>
