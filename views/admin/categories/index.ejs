@@ -6,6 +6,19 @@
 		<h2>Categorias</h2>
 		<a class="btn btn-success" href="/admin/categories/new" tabindex="2">Criar nova Categoria</a>
 		<hr />
+		<div style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; margin: 16px 0">
+			<p style="margin: 0">Última atualização: <span id="updateTime" style="color: #b88700; font-weight: 600"></span></p>
+			<button
+				onclick="atualizarItens()"
+				style="display: flex; flex-direction: row; align-items: center; gap: 5px; border: 1px solid transparent; border-radius: 8px; background: #ffce47; padding: 5px 15px; box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.1)"
+			>
+				<img
+					width="16px"
+					src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAADI0lEQVR4nO2ay29McRTHP7Q6IwSdCbWw0B3Ga+sP8C7aJhaoFaIbVWWLrqshkUga8RdIbEg9Q9KFxrNYoPpYeSwEOzVVjJzke5NfJjPtPO7cuZd+k19yb+7vnsf9nd8553fOhVn8u0gAzcA5oB8YBr4Bk8BPXY8AN4FezU0SEsSBg8Bd4DeQKXJMAbeBNqCuGgrMB04Cnxyh0sAD4LS+9mqgHpinYddrgD1AN3Bfq+W9b7SMZiwoJXYC444AT4HDwOISaNXr3RcOvXFgR465ncAKv8yoz2H4HNiCf9gKvBLtP8Bl8TS0ynT3lstkuQQ3Jt+BY0AN/qMG6AJ+iNdjoAWY0P35cog3AmMi9BZYS+WxLst8vTFYzkqMOUTMxQaFVcCvLEXSpTiDuGNOpsQCgvWKg3lc9qZiifU55hTkSswFrk0Te04U62K9jR3EnnBxYYYgerWYZfU2mnmnoLEISMkdH1LwvKIM4LVGQTjlxIlKuNhAEAM+SpHNRBhtTtoRadyTIpb/RBYJBaB0iQlgaNCi1bD0OtLolSJ2nog0+qXIbiKOESliJ7tI46sUCTKvqggmpUhVigD/qyIx53wSadNaKlk/R32zpySrFQHzul+rO4UdrZL1+nQB8QzhR7dk7cn1sFkPrVoYdgxI1qZ8VT8vaVxCeJGQh53SaTIn7kjTI4QX7ZLR9nReHNCkZ4QTc4AhybhvpkDzQRPt8B82NEm294UU6ro0eShkxYdap8jdUWiF0SuTHic86JJM74opm27XS1YFX0/1sdGp0BfdyrjkfIFklfOqUclysRQCcZWFjMCjgIvYHhaqR+L1SmLlfI1hEXqi+yAD30Pxtj3bUC7BRmdpzcw2EMyeGBVPy8pX+kW4wTGzCTUmzR36jdocrbdlfjOJOw7Axkt5N78itrUyvDjhbeyKtqq3OcvuVe2PKuksZR+0O2lHRqbkZ7d4xtXpdNKZjDJSS6/PqmqZktuu00iqadSqOQNZPwxY2tER5A8DLozpfuBWjsZlob9w9CsBrIoCuWCF7106td1Q7/GLvvqkrt/oeNqjuXnPE7Mg4vgLGHoVHpXIaV8AAAAASUVORK5CYII="
+				/>
+				Atualizar Tabela
+			</button>
+		</div>
 		<table class="table table-bordered">
 			<thead>
 				<tr>
@@ -40,39 +53,47 @@
 			decision ? form.submit() : '';
 			return;
 		}
+		function atualizarItens(button) {
+			fetch('/admin/categories/api')
+				.then((response) => response.json())
+				.then((data) => {
+					const d = new Date();
+					const formatacaoDeData = new Intl.DateTimeFormat('pt-BR', {
+						// dateStyle: 'short',
+						timeStyle: 'medium',
+						timeZone: 'America/Sao_Paulo',
+					});
+					if (dados === undefined || JSON.stringify(dados) != JSON.stringify(data)) {
+						dataHTML = '';
+						dados = data;
+						console.log(`Novas atualizações : ${d.getHours()}h${d.getMinutes()}m`);
+						for (let i in dados) {
+							dataHTML += `
+							<tr>
+							<th>${dados[i].id}</th>
+							<th>${dados[i].title}</th>
+							<th>${dados[i].slug}</th>
+							<th>
+								<a href="/admin/categories/edit/${dados[i].id}" class="btn btn-warning" tabindex="2">Editar</a>
+								<form onsubmit="deletarCategoria(event, this)" method="POST" action="/categories/delete" style="display: inline;">
+								<input type="hidden" name="id" value="${dados[i].id}" />
+								<button class="btn btn-danger" tabindex="2">Deletar</button>
+								</form>
+							</th>
+							</tr>
+							`;
+						}
+						infoDATA.innerHTML = dataHTML;
+					}
+					document.getElementById('updateTime').innerText = `${formatacaoDeData.format(d)}`;
+				});
+		}
 		let dataHTML = '';
 		const infoDATA = document.getElementById('infoDATA');
 		let dados = [];
 		//INFORMAÇÕES AP
-		setInterval(() => {
-			fetch('/admin/categories/api')
-				.then((response) => response.json())
-				.then((data) => {
-					if (dados === undefined || JSON.stringify(dados) != JSON.stringify(data)) {
-						dataHTML = '';
-						dados = data;
-						const d = new Date();
-						console.log(`Novas atualizações : ${d.getHours()}h${d.getMinutes()}m`);
-						for (let i in dados) {
-							dataHTML += `
-          <tr>
-            <th>${dados[i].id}</th>
-            <th>${dados[i].title}</th>
-            <th>${dados[i].slug}</th>
-            <th>
-              <a href="/admin/categories/edit/${dados[i].id}" class="btn btn-warning" tabindex="2">Editar</a>
-              <form onsubmit="deletarCategoria(event, this)" method="POST" action="/categories/delete" style="display: inline;">
-                <input type="hidden" name="id" value="${dados[i].id}" />
-                <button class="btn btn-danger" tabindex="2">Deletar</button>
-              </form>
-            </th>
-          </tr>
-          `;
-						}
-						infoDATA.innerHTML = dataHTML;
-					}
-				});
-		}, 2000);
+		atualizarItens();
+		setInterval(atualizarItens, 60000);
 	</script>
 </body>
 <%- include('../../partials/footer.ejs') %>

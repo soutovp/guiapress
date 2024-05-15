@@ -17,6 +17,7 @@ export default function categoriesUpdate(req, res) {
 		}
 	).then(() => {
 		updateCategories();
+		// console.log(req.socket.remoteAddress);
 		res.redirect('/admin/categories');
 	});
 }
